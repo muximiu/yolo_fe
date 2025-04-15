@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "../page.module.css";
 
@@ -23,7 +23,7 @@ interface ResultData {
   detection_count: number;
 }
 
-export default function ResultPage() {
+function ResultContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [resultData, setResultData] = useState<ResultData | null>(null);
@@ -100,5 +100,19 @@ export default function ResultPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense fallback={
+      <div className={styles.page}>
+        <main className={styles.main}>
+          <h1 className={styles.title}>Loading results...</h1>
+        </main>
+      </div>
+    }>
+      <ResultContent />
+    </Suspense>
   );
 } 
