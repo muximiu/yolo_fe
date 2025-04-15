@@ -36,7 +36,7 @@ function ResultContent() {
         const parsedData = JSON.parse(decodeURIComponent(data));
         setResultData(parsedData);
         
-        const baseUrl = "https://yolo-server-fnyw.onrender.com";
+        const baseUrl = "https://inference-server-8mhx.onrender.com";
         setImageUrl(`${baseUrl}${parsedData.inference_image_path}`);
       } catch (error) {
         console.error('Error parsing result data:', error);
