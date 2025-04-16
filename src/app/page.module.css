@@ -374,3 +374,9 @@ a.secondary {
 .backButton:hover {
   background-color: #333;
 }
+
+.smallText {
+  font-size: 0.5rem;
+  color: red;
+  margin-top: 5px;
+}

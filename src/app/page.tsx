@@ -13,13 +13,33 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Define allowed image formats
+  const allowedFormats = {
+    mimeTypes: ["image/jpeg", "image/png", "image/bmp", "image/webp"],
+    extensions: [".jpg", ".jpeg", ".png", ".bmp", ".webp"],
+  };
+
+  // Helper function to check if a file is a valid image format
+  const isValidImageFormat = (file: File): boolean => {
+    return allowedFormats.mimeTypes.includes(file.type);
+  };
+
+  // Get the list of accepted file types for input element
+  const acceptedFileTypes = allowedFormats.mimeTypes.join(",");
+
+  // Format allowed extensions for display
+  const allowedExtensionsText = allowedFormats.extensions.join(", ");
 
   useEffect(() => {
     // Check if the device is mobile or tablet
     const checkDeviceType = () => {
       const isMobile = window.matchMedia("(max-width: 767px)").matches;
-      const isTablet = window.matchMedia("(min-width: 768px) and (max-width: 1024px)").matches;
+      const isTablet = window.matchMedia(
+        "(min-width: 768px) and (max-width: 1024px)"
+      ).matches;
       setIsMobileOrTablet(isMobile || isTablet);
     };
 
@@ -63,26 +83,29 @@ export default function Home() {
     []
   );
 
-  const handleFile = useCallback((selectedFile: File) => {
-    if (!selectedFile.type.startsWith("image/")) {
-      alert("Please select an image file.");
-      return;
-    }
+  const handleFile = useCallback(
+    (selectedFile: File) => {
+      if (!isValidImageFormat(selectedFile)) {
+        setUploadError(
+          `Please select a valid image format: ${allowedExtensionsText}`
+        );
+        return;
+      }
 
-    setFile(selectedFile);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(selectedFile);
-  }, []);
+      setFile(selectedFile);
+      setUploadError(null);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    },
+    [allowedExtensionsText]
+  );
 
   const handleTakePhoto = useCallback(() => {
-    if (fileInputRef.current) {
-      fileInputRef.current.accept = "image/*";
-      fileInputRef.current.capture = "environment";
-      fileInputRef.current.setAttribute("capture", "environment");
-      fileInputRef.current.click();
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
     }
   }, []);
 
@@ -99,9 +122,7 @@ export default function Home() {
 
       // Call the backend API endpoint
       const response = await fetch(
-        // "https://inference-server-8mhx.onrender.com/predict",
         process.env.NEXT_PUBLIC_BACKEND_URL + "/predict",
-        // "http://localhost:8000/predict",
         {
           method: "POST",
           body: formData,
@@ -139,15 +160,12 @@ export default function Home() {
   const handleIOSFileSelection = () => {
     const newInput = document.createElement("input");
     newInput.type = "file";
-    newInput.accept = "image/*";
+    newInput.accept = acceptedFileTypes;
 
     newInput.addEventListener("change", (event: Event) => {
       const input = event.target as HTMLInputElement;
       if (input?.files && input.files[0]) {
-        const input = event.target as HTMLInputElement;
-        if (input?.files && input.files[0]) {
-          handleFile(input.files[0]);
-        }
+        handleFile(input.files[0]);
       }
     });
 
@@ -167,9 +185,19 @@ export default function Home() {
         <h1 className={styles.title}>Spaghetti Detection</h1>
 
         {isMobileOrTablet && (
-          <button className={styles.photoButton} onClick={handleTakePhoto}>
-            Take Photo 📷
-          </button>
+          <>
+            <button className={styles.photoButton} onClick={handleTakePhoto}>
+              Take Photo 📷
+            </button>
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept={acceptedFileTypes}
+              capture="environment"
+              onChange={handleFileInput}
+              className={styles.fileInput}
+            />
+          </>
         )}
 
         {isMobileOrTablet ? (
@@ -187,8 +215,6 @@ export default function Home() {
           onDragLeave={handleDragLeave}
           onClick={() => {
             if (fileInputRef.current) {
-              // fileInputRef.current.capture = "";
-              fileInputRef.current.removeAttribute("capture");
               fileInputRef.current?.click();
             }
           }}
@@ -205,19 +231,21 @@ export default function Home() {
           ) : (
             <div className={styles.placeholder}>
               <p>Drag and drop an image here, or click to select</p>
+              <p style={{ fontSize: "0.8em", marginTop: "1em" }}>
+                {allowedExtensionsText}
+              </p>
             </div>
           )}
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept={acceptedFileTypes}
             onChange={handleFileInput}
             onInput={handleFileInput}
             onClick={() => {
               // Check if running on iOS Safari
               const isIOS =
-                /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-                true;
+                /iPad|iPhone|iPod/.test(navigator.userAgent) && true;
               const isSafari =
                 /Safari/.test(navigator.userAgent) &&
                 !/Chrome/.test(navigator.userAgent);
@@ -230,6 +258,8 @@ export default function Home() {
           />
         </div>
 
+        {uploadError && <div className={styles.error}>{uploadError}</div>}
+
         <div className={styles.actions}>
           <button
             className={styles.uploadButton}
@@ -239,8 +269,6 @@ export default function Home() {
             {uploading ? "Processing..." : "Run inference"}
           </button>
         </div>
-
-        {uploadError && <div className={styles.error}>{uploadError}</div>}
       </main>
     </div>
   );
