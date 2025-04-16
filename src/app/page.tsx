@@ -152,7 +152,12 @@ export default function Home() {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => {
+            if (fileInputRef.current) {
+              fileInputRef.current.capture = "";
+              fileInputRef.current?.click()
+            }
+          }}
         >
           {preview ? (
             <div className={styles.previewContainer}>
