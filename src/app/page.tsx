@@ -101,6 +101,9 @@ export default function Home() {
           method: "POST",
           body: formData,
           credentials: 'omit',
+          headers: {
+            "Accept": "*/*"
+          }
         }
       );
 
