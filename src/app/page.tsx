@@ -53,15 +53,19 @@ export default function Home() {
     setIsDragging(false);
   }, []);
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
-  }, []);
+  const handleFileInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log("File input changed:", e.target.files);
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    },
+    []
+  );
 
   const handleFile = useCallback((selectedFile: File) => {
-    if (!selectedFile.type.startsWith('image/')) {
-      alert('Please select an image file.');
+    if (!selectedFile.type.startsWith("image/")) {
+      alert("Please select an image file.");
       return;
     }
 
@@ -91,7 +95,7 @@ export default function Home() {
     try {
       // Create FormData object to send the file
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
       // Call the backend API endpoint
       const response = await fetch(
@@ -101,10 +105,10 @@ export default function Home() {
         {
           method: "POST",
           body: formData,
-          credentials: 'omit',
+          credentials: "omit",
           headers: {
-            "Accept": "*/*"
-          }
+            Accept: "*/*",
+          },
         }
       );
 
@@ -114,42 +118,66 @@ export default function Home() {
 
       // Get the response as JSON
       const data = await response.json();
-      
+
       console.log("Response received:", data);
-      
+
       // Navigate to results page with data
       const encodedData = encodeURIComponent(JSON.stringify(data));
       router.push(`/result?data=${encodedData}`);
     } catch (error) {
-      console.error('Error uploading file:', error);
-      setUploadError(`Inference failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Error uploading file:", error);
+      setUploadError(
+        `Inference failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     } finally {
       setUploading(false);
     }
   };
 
+  const handleIOSFileSelection = () => {
+    const newInput = document.createElement("input");
+    newInput.type = "file";
+    newInput.accept = "image/*";
+
+    newInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    newInput.click();
+  };
+
+  useEffect(() => {
+    setInterval(() => {
+      const value = fileInputRef.current?.files;
+      console.log("File input value:", value);
+    }, 1000);
+  }, []);
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
         <h1 className={styles.title}>Spaghetti Detection</h1>
-        
+
         {isMobileOrTablet && (
-          <button 
-            className={styles.photoButton} 
-            onClick={handleTakePhoto}
-          >
-            Take Photo 📷 
+          <button className={styles.photoButton} onClick={handleTakePhoto}>
+            Take Photo 📷
           </button>
         )}
 
         {isMobileOrTablet ? (
           <h2 className={styles.title2}>or select an image</h2>
         ) : (
-          <h2 className={styles.title2}>Select a photo and then run inference</h2>
+          <h2 className={styles.title2}>
+            Select a photo and then run inference
+          </h2>
         )}
-        
-        <div 
-          className={`${styles.dropzone} ${isDragging ? styles.dragging : ''}`}
+
+        <div
+          className={`${styles.dropzone} ${isDragging ? styles.dragging : ""}`}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -157,17 +185,17 @@ export default function Home() {
             if (fileInputRef.current) {
               // fileInputRef.current.capture = "";
               fileInputRef.current.removeAttribute("capture");
-              fileInputRef.current?.click()
+              fileInputRef.current?.click();
             }
           }}
         >
           {preview ? (
             <div className={styles.previewContainer}>
-              <Image 
-                src={preview} 
-                alt="Preview" 
-                fill 
-                style={{ objectFit: 'contain' }} 
+              <Image
+                src={preview}
+                alt="Preview"
+                fill
+                style={{ objectFit: "contain" }}
               />
             </div>
           ) : (
@@ -180,25 +208,35 @@ export default function Home() {
             type="file"
             accept="image/*"
             onChange={handleFileInput}
+            onInput={handleFileInput}
+            onClick={() => {
+              // Check if running on iOS Safari
+              const isIOS =
+                /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+                !window.MSStream;
+              const isSafari =
+                /Safari/.test(navigator.userAgent) &&
+                !/Chrome/.test(navigator.userAgent);
+
+              if (isIOS && isSafari) {
+                handleIOSFileSelection();
+              }
+            }}
             className={styles.fileInput}
           />
         </div>
 
         <div className={styles.actions}>
-          <button 
-            className={styles.uploadButton} 
-            onClick={handleUpload} 
+          <button
+            className={styles.uploadButton}
+            onClick={handleUpload}
             disabled={!file || uploading}
           >
-            {uploading ? 'Processing...' : 'Run inference'}
+            {uploading ? "Processing..." : "Run inference"}
           </button>
         </div>
 
-        {uploadError && (
-          <div className={styles.error}>
-            {uploadError}
-          </div>
-        )}
+        {uploadError && <div className={styles.error}>{uploadError}</div>}
       </main>
     </div>
   );
