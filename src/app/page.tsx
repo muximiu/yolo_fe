@@ -141,9 +141,13 @@ export default function Home() {
     newInput.type = "file";
     newInput.accept = "image/*";
 
-    newInput.addEventListener("change", (e) => {
-      if (e.target.files && e.target.files[0]) {
-        handleFile(e.target.files[0]);
+    newInput.addEventListener("change", (event: Event) => {
+      const input = event.target as HTMLInputElement;
+      if (input?.files && input.files[0]) {
+        const input = event.target as HTMLInputElement;
+        if (input?.files && input.files[0]) {
+          handleFile(input.files[0]);
+        }
       }
     });
 
