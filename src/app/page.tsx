@@ -94,10 +94,13 @@ export default function Home() {
 
       // Call the backend API endpoint
       const response = await fetch(
-        "https://inference-server-8mhx.onrender.com/predict",
+        // "https://inference-server-8mhx.onrender.com/predict",
+        process.env.NEXT_PUBLIC_BACKEND_URL + "/predict",
+        // "http://localhost:8000/predict",
         {
           method: "POST",
           body: formData,
+          credentials: 'omit',
         }
       );
 

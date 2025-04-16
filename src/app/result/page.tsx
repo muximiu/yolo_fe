@@ -36,7 +36,8 @@ function ResultContent() {
         const parsedData = JSON.parse(decodeURIComponent(data));
         setResultData(parsedData);
         
-        const baseUrl = "https://inference-server-8mhx.onrender.com";
+        // Use environment variable for backend URL
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
         setImageUrl(`${baseUrl}${parsedData.inference_image_path}`);
       } catch (error) {
         console.error('Error parsing result data:', error);
