@@ -217,7 +217,7 @@ export default function Home() {
               // Check if running on iOS Safari
               const isIOS =
                 /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-                !window.MSStream;
+                true;
               const isSafari =
                 /Safari/.test(navigator.userAgent) &&
                 !/Chrome/.test(navigator.userAgent);
