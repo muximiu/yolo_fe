@@ -76,7 +76,8 @@ export default function Home() {
   const handleTakePhoto = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.accept = "image/*";
-      fileInputRef.current.capture = "environment";
+      // fileInputRef.current.capture = "environment";
+      fileInputRef.current.setAttribute("capture", "environment");
       fileInputRef.current.click();
     }
   }, []);
