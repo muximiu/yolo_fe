@@ -154,7 +154,8 @@ export default function Home() {
           onDragLeave={handleDragLeave}
           onClick={() => {
             if (fileInputRef.current) {
-              fileInputRef.current.capture = "";
+              // fileInputRef.current.capture = "";
+              fileInputRef.current.removeAttribute("capture");
               fileInputRef.current?.click()
             }
           }}
