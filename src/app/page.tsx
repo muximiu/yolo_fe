@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -11,8 +11,29 @@ export default function Home() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if the device is mobile or tablet
+    const checkDeviceType = () => {
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
+      const isTablet = window.matchMedia("(min-width: 768px) and (max-width: 1024px)").matches;
+      setIsMobileOrTablet(isMobile || isTablet);
+    };
+
+    // Initial check
+    checkDeviceType();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkDeviceType);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", checkDeviceType);
+    };
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -105,14 +126,20 @@ export default function Home() {
       <main className={styles.main}>
         <h1 className={styles.title}>Spaghetti Detection</h1>
         
-        <button 
-          className={styles.photoButton} 
-          onClick={handleTakePhoto}
-        >
-          Take Photo 📷 
-        </button>
+        {isMobileOrTablet && (
+          <button 
+            className={styles.photoButton} 
+            onClick={handleTakePhoto}
+          >
+            Take Photo 📷 
+          </button>
+        )}
 
-        <h2 className={styles.title2}>or select an image</h2>
+        {isMobileOrTablet ? (
+          <h2 className={styles.title2}>or select an image</h2>
+        ) : (
+          <h2 className={styles.title2}>Select a photo and then run inference</h2>
+        )}
         
         <div 
           className={`${styles.dropzone} ${isDragging ? styles.dragging : ''}`}
